@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from taxi.forms import DriverCreationForm, DriverLicenseUpdateForm, CarForm
-from taxi.models import Car
+from taxi.models import Car, Manufacturer
 
 
 class DriverCreationFormTests(TestCase):
@@ -63,17 +63,36 @@ class DriverLicenseUpdateFormTests(TestCase):
 class CarFormTests(TestCase):
     def setUp(self):
         self.driver1 = get_user_model().objects.create_user(
-            username="driver1", password="pass12345", license_number="AAA11111"
+            username="driver1",
+            password="pass123",
+            license_number="AAA11111"
         )
         self.driver2 = get_user_model().objects.create_user(
-            username="driver2", password="pass12345", license_number="BBB22222"
+            username="driver2",
+            password="pass123",
+            license_number="BBB22222"
+        )
+        self.manufacturer = Manufacturer.objects.create(
+            name="BMW",
+            country="Germany"
         )
 
     def test_car_form_valid_data(self):
         form_data = {
             "model": "X5",
-            "manufacturer": None,
+            "manufacturer": self.manufacturer.id,
             "drivers": [self.driver1.id, self.driver2.id],
         }
+
         form = CarForm(data=form_data)
-        self.assertIn("drivers", form.fields)
+
+        self.assertTrue(form.is_valid())
+
+        car = form.save()
+
+        self.assertEqual(car.model, "X5")
+        self.assertEqual(car.manufacturer, self.manufacturer)
+        self.assertEqual(
+            list(car.drivers.all()),
+            [self.driver1, self.driver2]
+        )

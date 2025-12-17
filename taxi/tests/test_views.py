@@ -160,3 +160,96 @@ class PrivateDriverDetailTests(TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context["driver"], self.user)
+
+class PrivateManufacturerListSearchTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="test",
+            password="test123",
+            license_number="LIC123"
+        )
+        self.client.force_login(self.user)
+
+    def test_manufacturer_list_filtered_by_name(self):
+        bmw = Manufacturer.objects.create(name="BMW", country="Germany")
+        audi = Manufacturer.objects.create(name="Audi", country="Germany")
+
+        response = self.client.get(
+            MANUFACTURER_LIST_URL,
+            {"name": "BM"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["manufacturer_list"]),
+            [bmw]
+        )
+
+class PrivateCarListSearchTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="test",
+            password="test123",
+            license_number="LIC123"
+        )
+        self.client.force_login(self.user)
+
+    def test_car_list_filtered_by_model(self):
+        manufacturer = Manufacturer.objects.create(
+            name="BMW",
+            country="Germany"
+        )
+
+        car_x5 = Car.objects.create(
+            model="X5",
+            manufacturer=manufacturer
+        )
+        Car.objects.create(
+            model="A4",
+            manufacturer=manufacturer
+        )
+
+        response = self.client.get(
+            CAR_LIST_URL,
+            {"model": "X5"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["car_list"]),
+            [car_x5]
+        )
+
+
+class PrivateDriverListSearchTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="test",
+            password="test123",
+            license_number="LIC123"
+        )
+        self.client.force_login(self.user)
+
+    def test_driver_list_filtered_by_username(self):
+        driver1 = get_user_model().objects.create_user(
+            username="john_doe",
+            password="pass123",
+            license_number="AAA111"
+        )
+        get_user_model().objects.create_user(
+            username="alice",
+            password="pass123",
+            license_number="BBB222"
+        )
+
+        response = self.client.get(
+            DRIVER_LIST_URL,
+            {"username": "john"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["driver_list"]),
+            [driver1]
+        )
+
