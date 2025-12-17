@@ -138,7 +138,6 @@ class PrivateDriverListTests(TestCase):
         res = self.client.get(DRIVER_LIST_URL)
 
         self.assertEqual(res.status_code, 200)
-        # Використовуємо створені змінні у перевірці
         self.assertEqual(
             list(res.context["driver_list"]),
             [self.user, driver1, driver2]
@@ -161,6 +160,7 @@ class PrivateDriverDetailTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context["driver"], self.user)
 
+
 class PrivateManufacturerListSearchTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -178,12 +178,22 @@ class PrivateManufacturerListSearchTests(TestCase):
             MANUFACTURER_LIST_URL,
             {"name": "BM"}
         )
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             list(response.context["manufacturer_list"]),
             [bmw]
         )
+
+        response = self.client.get(
+            MANUFACTURER_LIST_URL,
+            {"name": "Au"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["manufacturer_list"]),
+            [audi]
+        )
+
 
 class PrivateCarListSearchTests(TestCase):
     def setUp(self):
@@ -252,4 +262,3 @@ class PrivateDriverListSearchTests(TestCase):
             list(response.context["driver_list"]),
             [driver1]
         )
-
